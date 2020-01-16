@@ -68,7 +68,7 @@ for file in files: #Passa por cada um dos arquivos ZIP da pasta.
     soma_atual = 0 #Declara a variável que vai ser utilizada para conferir o volume em cada bucket.
     for i in df.Volume_Negociado.values:
         soma_atual += i
-        if grupo_numero < 50: #Confere se não está no último bucket (único que pode estourar o limite)
+        if grupo_numero < N: #Confere se não está no último bucket (único que pode estourar o limite)
             if soma_atual > volume_bucket_dia: #Se ultrapassar o valor do limite máximo do bucket.
                 soma_atual = i #Já inclui o valor do FOR atual no próximo bucket.
                 grupo_numero += 1 #Passa para o próximo bucket
@@ -77,7 +77,7 @@ for file in files: #Passa por cada um dos arquivos ZIP da pasta.
                 agrupador.append(grupo_numero)
         else:
             agrupador.append(grupo_numero)
-    buckets = df.groupby(agrupador) #Cria os buckets, cada um com até o valor do volume de cada bucket (1/50 avos do volume do dia), exceto o último que ultrapassará o limite (será o bucket de ajuste).   
+    buckets = df.groupby(agrupador) #Cria os buckets, cada um com até o valor do volume de cada bucket (1/N avos do volume do dia), exceto o último que ultrapassará o limite (será o bucket de ajuste).   
     for tuple in buckets:#Passa por cada uma das tuples formadas na linha anterior.
         bucket_number, df_bucket = tuple #Separa o que é o número do bucket e o que é o dataframe do bucket.
         vpin = (np.abs((df_bucket.Coluna11 * df_bucket.Volume_Negociado).sum())) / (N * (df_bucket.Volume_Negociado.sum())) #Calcula o VPIN.
