@@ -58,7 +58,7 @@ for file in files: #Passa por cada um dos arquivos ZIP da pasta.
     df = df[colunas_de_interesse] #Deleta as colunas que não são de interesse do usuário.
     df.Coluna2 = df.Coluna2.str.rstrip() #Deleta os espaços em branco à direita do ticker na Coluna2.
     df = df[(df.Coluna2.str.contains(prefixo)) & (df.Coluna2.str.len() == 6)] #Esse comando deleta todas as linhas que não são do ativo de interesse (determinado em função do prefixo) e cujo ticker possua mais ou menos de 6 caracteres.
-    df = df.loc[np.repeat(df.index.values,df.Coluna5)] #O objetivo desse for é desmembrar as movimentações que tiveram quantidades negociadas maiores que 1. Dessa forma, uma negociação de N quantidade vai ser transformar em N negociações de uma quantidade.
+    df = df.loc[np.repeat(df.index.values,df.Coluna5)] #O objetivo é desmembrar as movimentações que tiveram quantidades negociadas maiores que 1. Dessa forma, uma negociação de N quantidade vai ser transformar em N negociações de uma quantidade.
     df.Coluna5 = 1.0 #Determina que o volune de cada "negociação" após o desmembramento é 1.
     df.reset_index(drop=True) #Reseta o index para ficar mais organizado e sem valores de index repetidos.
     df.insert(column = 'Volume_Negociado', value = df.Coluna4 * df.Coluna5, loc=(len(df.columns))) #Cria uma nova coluna com o volume negociado em cada operação.
