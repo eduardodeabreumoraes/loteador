@@ -52,7 +52,7 @@ fd.write('\n')
 fd.close()
 
 for file in files: #Passa por cada um dos arquivos ZIP da pasta.
-    df = pd.read_csv(pasta + '/' + file, sep=';', names=colunas, skiprows=1) #Entra em cada ZIP, lê o arquivo (seperado por ';'), ignora a primeira linha (dentificação do arquivo), e transforma em um pandas dataframe.
+    df = pd.read_csv(pasta + '/' + file, sep=';', names=colunas, skiprows=1) #Entra em cada ZIP, lê o arquivo (separado por ';'), ignora a primeira linha (dentificação do arquivo), e transforma em um pandas dataframe.
     data = df.iloc[0,0] #Salva a data daquele dia (arquivo).
     df = df[:-1] #Deleta a última linha do dataframe (presenta o total de linhas do arquivo).
     df = df[colunas_de_interesse] #Deleta as colunas que não são de interesse do usuário.
