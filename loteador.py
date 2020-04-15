@@ -39,7 +39,9 @@ fd.write(',')
 #fd.write(',')
 #fd.write('Primeira Oferta Compra')
 #fd.write(',')
-fd.write('Bid Ask Spread')
+fd.write('Bid Ask Spread (Última Oferta de Venda menos a Primeira Oferta de Compra)')
+fd.write(',')
+fd.write('Bid Ask Spread (Menor Oferta de Venda menos a Maior Oferta de Compra)')
 fd.write(',')
 fd.write('Quantidade negociada')
 fd.write(',')
@@ -60,7 +62,7 @@ for file in files: #Passa por cada um dos arquivos ZIP da pasta.
     df = df[(df.Coluna2.str.contains(prefixo)) & (df.Coluna2.str.len() == 6)] #Esse comando deleta todas as linhas que não são do ativo de interesse (determinado em função do prefixo) e cujo ticker possua mais ou menos de 6 caracteres.
     if len(df.index) == 0:
         continue
-    df = df.loc[np.repeat(df.index.values,df.Coluna5)] #O objetivo desse for é desmembrar as movimentações que tiveram quantidades negociadas maiores que 1. Dessa forma, uma negociação de N quantidade vai ser transformar em N negociações de uma quantidade.
+    df = df.loc[np.repeat(df.index.values,df.Coluna5)] #O objetivo dessa linha é desmembrar as movimentações que tiveram quantidades negociadas maiores que 1. Dessa forma, uma negociação de N quantidade vai ser transformar em N negociações de uma quantidade.
     df.Coluna5 = 1.0 #Determina que o volune de cada "negociação" após o desmembramento é 1.
     df.reset_index(drop=True) #Reseta o index para ficar mais organizado e sem valores de index repetidos.
     df.insert(column = 'Volume_Negociado', value = df.Coluna4 * df.Coluna5, loc=(len(df.columns))) #Cria uma nova coluna com o volume negociado em cada operação.
@@ -87,17 +89,24 @@ for file in files: #Passa por cada um dos arquivos ZIP da pasta.
         bucket_number, df_bucket = tuple #Separa o que é o número do bucket e o que é o dataframe do bucket.
         vpin = (np.abs((df_bucket.Coluna11 * df_bucket.Volume_Negociado).sum())) / (N * (df_bucket.Volume_Negociado.sum())) #Calcula o VPIN.
         lista_de_precos = (df_bucket.Coluna11 * df_bucket.Coluna4).to_list()
-        ultima_oferta_venda = np.nan
         for i in range(len(lista_de_precos)-1, -1, -1):
             if lista_de_precos[i] > 0:
                 ultima_oferta_venda = lista_de_precos[i] #Obtém o último valor positivo (oferta de venda).
                 break
-        primeira_oferta_compra = np.nan 
         for i in lista_de_precos:
             if i < 0:
                 primeira_oferta_compra = i #Obtém o primeiro valor negativo (oferta de compra).
                 break
-        bid_ask_spread = ultima_oferta_venda + primeira_oferta_compra
+        bid_ask_spread_UVPC = ultima_oferta_venda + primeira_oferta_compra #Calcula o Bid Ask Spread como sendo a Última Oferta de Venda menos a Primeira Oferta de Compra.
+        menor_valor_negativo = np.inf #Presume que o "valor inicial" é infinito (positivo) para permitir o funcionamento do for abaixo.
+        menor_valor_positivo = np.inf #Presume que o "valor inicial" é infinito (positivo) para permitir o funcionamento do for abaixo.
+        for i in lista_de_precos: #Esse for obtém o menor valor negativo (maior em módulo), que representa a maior oferta de compra; e o menor valor positivo, que representa a menor oferta de venda.
+            if i < menor_valor_negativo:
+                menor_valor_negativo = i
+            if i > 0: #Se for maior que zero, quer dizer que é uma oferta de venda.
+                if i < menor_valor_positivo:
+                    menor_valor_positivo = i
+        bid_ask_spread_MeVMaC = menor_valor_positivo + menor_valor_negativo #Calcula o Bid Ask Spread como sendo a Menor Oferta de Venda menos a Maior Oferta de Compra.
         quantidade_negociada = df_bucket.Coluna5.sum() #Soma as quantidades negociadas em cada linha do bucket.
         volume_negociado = df_bucket.Volume_Negociado.sum()
         variancia_preco = df_bucket.Coluna4.var() #Calcula a variância dos preços, sem diferenciar se são preços de compra e de venda.
@@ -113,7 +122,9 @@ for file in files: #Passa por cada um dos arquivos ZIP da pasta.
         #fd.write(',')
         #fd.write(str(primeira_oferta_compra))
         #fd.write(',')
-        fd.write(str(bid_ask_spread))
+        fd.write(str(bid_ask_spread_UVPC))
+        fd.write(',')
+        fd.write(str(bid_ask_spread_MeVMaC))
         fd.write(',')
         fd.write(str(quantidade_negociada))
         fd.write(',')
